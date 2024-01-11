@@ -16,7 +16,7 @@ namespace fuzzybools
     static bool intersect_ray_triangle(
         const glm::dvec3& origin, const glm::dvec3& end, const glm::dvec3& A, const glm::dvec3& B, const glm::dvec3& C, glm::dvec3& out, double& t, bool infiniteLength = false
     ) {
-        double EPS = EPS_SMALL;
+        double EPS = EPS_SMALL();
 
         glm::dvec3 dir = end - origin;
         glm::dvec3 E1 = B - A;
@@ -64,12 +64,12 @@ namespace fuzzybools
             {
                 glm::dvec3 bary(w, u, v);
                 glm::dvec3 vecBary = bary.x * A + bary.y * B + bary.z * C;
-                if (!equals(vec, vecBary, EPS_SMALL))
+                if (!equals(vec, vecBary, EPS_SMALL()))
                 {
                     printf("bad bary conversion\n");
                 }
                 glm::dvec3 reconstr = ToBary(A, B, C, vec);
-                if (!equals(bary, reconstr, EPS_SMALL))
+                if (!equals(bary, reconstr, EPS_SMALL()))
                 {
                     printf("bad bary conversion\n");
                 }

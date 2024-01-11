@@ -103,13 +103,13 @@ namespace fuzzybools
 
 		bool IsColinear(const Line& other) const
 		{
-			return (equals(other.direction, direction, EPS_SMALL) || equals(other.direction, -direction, EPS_SMALL));
+			return (equals(other.direction, direction, EPS_SMALL()) || equals(other.direction, -direction, EPS_SMALL()));
 		}
 
 		bool IsEqualTo(const glm::dvec3& pos, const glm::dvec3& dir) const
 		{
 			// check dir
-			if (!(equals(dir, direction, EPS_SMALL) || equals(dir, -direction, EPS_SMALL)))
+			if (!(equals(dir, direction, EPS_SMALL()) || equals(dir, -direction, EPS_SMALL())))
 			{
 				return false;
 			}
@@ -209,8 +209,8 @@ namespace fuzzybools
 
 		double round(double input)
 		{
-			input = std::fabs(input) < EPS_BIG ? 0.0 : input;
-			input = std::fabs(input) < (1 - EPS_BIG) ? input :
+			input = std::fabs(input) < EPS_BIG() ? 0.0 : input;
+			input = std::fabs(input) < (1 - EPS_BIG()) ? input :
 				input > 0 ? 1.0 : -1.0;
 			return input;
 		}
@@ -289,8 +289,8 @@ namespace fuzzybools
 		bool IsEqualTo(const glm::dvec3& n, double d)
 		{
 			// TODO: this EPS_BIG2 is too large, 1 mm
-			return (equals(normal, n, EPS_BIG2) && equals(distance, d, EPS_BIG2)) ||
-				(equals(normal, -n, EPS_BIG2) && equals(distance, -d, EPS_BIG2));
+			return (equals(normal, n, EPS_BIG2()) && equals(distance, d, EPS_BIG2())) ||
+				(equals(normal, -n, EPS_BIG2()) && equals(distance, -d, EPS_BIG2()));
 		}
 
 		glm::dvec2 GetPosOnPlane(const glm::dvec3& pos)
@@ -332,7 +332,7 @@ namespace fuzzybools
 			glm::dvec3 worldUp = glm::dvec3(0, 1, 0);
 			glm::dvec3 worldRight = glm::dvec3(1, 0, 0);
 
-			bool normalIsUp = equals(up, worldUp, EPS_SMALL) || equals(-up, worldUp, EPS_SMALL);
+			bool normalIsUp = equals(up, worldUp, EPS_SMALL()) || equals(-up, worldUp, EPS_SMALL());
 			glm::dvec3 left = normalIsUp ? glm::cross(up, worldRight) : glm::cross(up, worldUp);
 			glm::dvec3 right = glm::cross(left, up);
 
@@ -616,7 +616,7 @@ namespace fuzzybools
 			auto dpt3d = points[point].location3D - points[T.a].location3D;
 			auto dot = glm::dot(norm, dpt3d);
 
-			if (std::fabs(dot) < EPS_BIG) return TriangleVsPoint::ON;
+			if (std::fabs(dot) < EPS_BIG()) return TriangleVsPoint::ON;
 			if (dot > 0) return TriangleVsPoint::ABOVE;
 			return TriangleVsPoint::BELOW;
 		}
@@ -640,7 +640,7 @@ namespace fuzzybools
 			if (T.SamePoints(neighbour))
 			{
 				// same tri, different winding, flip if not the same normal
-				return glm::dot(normT, normNB) < 1 - EPS_BIG;
+				return glm::dot(normT, normNB) < 1 - EPS_BIG();
 			}
 
 			auto A = T.GetNotShared(neighbour);
@@ -671,7 +671,7 @@ namespace fuzzybools
 		glm::dvec3 GetNormal(Triangle& tri)
 		{
 			glm::dvec3 norm(-1, -1, -1);
-			computeSafeNormal(points[tri.a].location3D, points[tri.b].location3D, points[tri.c].location3D, norm, EPS_SMALL);
+			computeSafeNormal(points[tri.a].location3D, points[tri.b].location3D, points[tri.c].location3D, norm, EPS_SMALL());
 			return norm;
 		}
 
@@ -762,7 +762,7 @@ namespace fuzzybools
 				relevant.AddFace(a, b, c);
 
 				glm::dvec3 norm;
-				if (computeSafeNormal(a, b, c, norm, EPS_SMALL))
+				if (computeSafeNormal(a, b, c, norm, EPS_SMALL()))
 				{
 					auto ia = AddPoint(a);
 					auto ib = AddPoint(b);
@@ -1349,7 +1349,7 @@ namespace fuzzybools
 					// new lines result in new line intersects
 					// new line intersects result in new points
 
-					if (std::fabs(glm::dot(planeA.normal, planeB.normal)) > 1.0 - EPS_BIG)
+					if (std::fabs(glm::dot(planeA.normal, planeB.normal)) > 1.0 - EPS_BIG())
 					{
 						// parallel planes, don't care
 						continue;

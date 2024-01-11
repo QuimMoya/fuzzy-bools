@@ -45,11 +45,11 @@ namespace fuzzybools
 
             glm::dvec2 dir = glm::normalize(a - b);
 
-            bool colinear = std::fabs(glm::dot(dir, line)) > (1 - EPS_BIG);
+            bool colinear = std::fabs(glm::dot(dir, line)) > (1 - EPS_BIG());
 
             if (colinear) continue;
 
-            auto result = doLineSegmentsIntersect(pt, pt + line, a, b, EPS_BIG);
+            auto result = doLineSegmentsIntersect(pt, pt + line, a, b, EPS_BIG());
 
             if (result.isect)
             {
@@ -65,7 +65,7 @@ namespace fuzzybools
         double cur = -1;
         for (size_t i = 0; i < distances.size(); i++)
         {
-            if (std::fabs(distances[i] - cur) > EPS_BIG)
+            if (std::fabs(distances[i] - cur) > EPS_BIG())
             {
                 count++;
             }

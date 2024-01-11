@@ -91,7 +91,7 @@ namespace fuzzybools
 
 			double area = areaOfTriangle(a, b, c);
 
-			if (!computeSafeNormal(a, b, c, normal, EPS_SMALL))
+			if (!computeSafeNormal(a, b, c, normal, EPS_SMALL()))
 			{
 				// bail out, zero area triangle
 				printf("zero tri");

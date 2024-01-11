@@ -16,7 +16,7 @@ namespace fuzzybools
 
 		bool intersects(const AABB& other) const
 		{
-			double eps = EPS_BIG;
+			double eps = EPS_BIG(true);
 			return (max.x + eps >= other.min.x && other.max.x + eps >= min.x &&
 				max.y + eps >= other.min.y && other.max.y + eps >= min.y &&
 				max.z + eps >= other.min.z && other.max.z + eps >= min.z);
@@ -24,7 +24,7 @@ namespace fuzzybools
 
 		bool contains(const glm::dvec3& pos) const
 		{
-			double eps = EPS_BIG;
+			double eps = EPS_BIG(true);
 			return pos.x + eps >= min.x && pos.x - eps <= max.x &&
 				pos.y + eps >= min.y && pos.y - eps <= max.y &&
 				pos.z + eps >= min.z && pos.z - eps <= max.z;
@@ -62,14 +62,14 @@ namespace fuzzybools
 			double tmax = std::min(std::min(std::max(t1, t2), std::max(t3, t4)), std::max(t5, t6));
 
 			// if tmax < 0, ray (line) is intersecting AABB, but the whole AABB is behind us
-			if (tmax < -EPS_BIG)
+			if (tmax < -EPS_BIG())
 			{
 				//t = tmax;
 				return false;
 			}
 
 			// if tmin > tmax, ray doesn't intersect AABB
-			if (tmin > tmax + EPS_BIG)
+			if (tmin > tmax + EPS_BIG())
 			{
 				//t = tmax;
 				return false;

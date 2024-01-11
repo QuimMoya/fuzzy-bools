@@ -51,7 +51,7 @@ namespace fuzzybools
 		delta = glm::abs(delta);
 		glm::dvec3 offset = delta - extents;
 
-		return offset.x < EPS_SMALL && offset.y < EPS_SMALL&& offset.z < EPS_SMALL;
+		return offset.x < EPS_SMALL() && offset.y < EPS_SMALL() && offset.z < EPS_SMALL();
 	}
 	static double areaOfTriangle(glm::dvec3 a, glm::dvec3 b, glm::dvec3 c)
 	{
