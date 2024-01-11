@@ -536,6 +536,14 @@ namespace fuzzybools
 		{
 			for (auto& plane : geom.planesData)
 			{
+				for (auto& plane2 : planesData)
+				{
+					if (plane2.IsEqualTo(plane.normal, plane.distance))
+					{
+						return;
+					}
+				}
+
 				Plane p;
 				p.id = planesData.size();
 				p.normal = plane.normal;
