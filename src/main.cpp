@@ -58,6 +58,9 @@ BoolResult DoSubtract()
     A.BuildFromVectors(va, ia);
     B.BuildFromVectors(vb, ib);
 
+	A.GeneratePlanes();
+	B.GeneratePlanes();
+
     auto outputGeometry = fuzzybools::Subtract(A, B);
 
     resultVertices = outputGeometry.vertexData;

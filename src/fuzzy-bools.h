@@ -6,11 +6,9 @@
 
 namespace fuzzybools
 {
-	inline Geometry Subtract(Geometry& A, Geometry& B)
+	inline Geometry Subtract(const Geometry& A, const Geometry& B, double scale = 1)
 	{
-		A.GeneratePlanes();
-		B.GeneratePlanes();
-
+		EPS_SCALE = scale;
 		fuzzybools::SharedPosition sp;
 		sp.Construct(A, B);
 
@@ -29,11 +27,9 @@ namespace fuzzybools
 		return result;
 	}
 
-	inline Geometry Union(Geometry& A, Geometry& B)
+	inline Geometry Union(const Geometry& A, const Geometry& B, double scale = 1)
 	{
-		A.GeneratePlanes();
-		B.GeneratePlanes();
-
+		EPS_SCALE = scale;
 		fuzzybools::SharedPosition sp;
 		sp.Construct(A, B);
 
