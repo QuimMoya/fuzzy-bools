@@ -88,7 +88,7 @@ namespace fuzzybools
 			glm::dvec3 v = A - B;
 			double t = glm::dot(v, d);
 			glm::dvec3 P = B + t * d;
-			return glm::distance(P, A) < SCALED_EPS_BIG;
+			return glm::distance(P, A) < EPS_BIG();
 		}
 
 		double GetPosOnLine(const glm::dvec3& pos) const
@@ -173,7 +173,7 @@ namespace fuzzybools
 
 		bool operator==(const glm::dvec3& pt)
 		{
-			return equals(location3D, pt, SCALED_EPS_BIG);
+			return equals(location3D, pt, EPS_BIG());
 		}
 
 		std::vector<ReferenceLine> lines;
@@ -321,7 +321,7 @@ namespace fuzzybools
 		bool IsPointOnPlane(const glm::dvec3& pos)
 		{
 			double d = glm::dot(normal, pos);
-			return equals(distance, d, SCALED_EPS_BIG);
+			return equals(distance, d, EPS_BIG());
 		}
 
 		PlaneBasis MakeBasis()
@@ -1164,7 +1164,7 @@ namespace fuzzybools
 				auto result = LineLineIntersection(Astart, Aend,
 					sp.points[seg.first].location3D, sp.points[seg.second].location3D);
 
-				if (result.distance < SCALED_EPS_BIG)
+				if (result.distance < EPS_BIG())
 				{
 					if (!p.aabb.contains(sp.points[seg.first].location3D))
 					{
@@ -1184,7 +1184,7 @@ namespace fuzzybools
 						printf("bad points");
 					}
 
-					if (!equals(pt, result.point2, SCALED_EPS_BIG))
+					if (!equals(pt, result.point2, EPS_BIG()))
 					{
 						printf("BAD POINT");
 					}
@@ -1214,7 +1214,7 @@ namespace fuzzybools
 					auto result = LineLineIntersection(sp.points[segA.first].location3D, sp.points[segA.second].location3D,
 						sp.points[segB.first].location3D, sp.points[segB.second].location3D);
 
-					if (result.distance < SCALED_EPS_BIG)
+					if (result.distance < EPS_BIG())
 					{
 						// intersection! Take center and insert
 						if (!p.aabb.contains(result.point1))
