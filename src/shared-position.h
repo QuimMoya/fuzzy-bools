@@ -24,329 +24,6 @@
 
 namespace fuzzybools
 {
-	struct PlaneBasis
-	{
-		glm::dvec3 origin;
-
-		glm::dvec3 up;
-		glm::dvec3 left;
-		glm::dvec3 right;
-
-		glm::dvec2 project(const glm::dvec3& pt)
-		{
-			auto relative = pt - origin;
-			return glm::dvec2(glm::dot(relative, left), glm::dot(relative, right));
-		}
-	};
-
-	struct ReferencePlane
-	{
-		size_t planeID;
-		size_t pointID;
-		size_t lineID;
-		glm::dvec2 location;
-	};
-
-	struct ReferenceLine
-	{
-		size_t lineID;
-		size_t pointID;
-		double location;
-	};
-
-	struct Line
-	{
-		size_t id;
-		size_t globalID;
-		glm::dvec3 origin;
-		glm::dvec3 direction;
-
-		Line()
-		{
-			static size_t idcounter = 0;
-			idcounter++;
-			globalID = idcounter;
-		}
-
-		/*
-		bool IsPointOnLine(const glm::dvec3& pos) const
-		{
-			double t = glm::dot(pos - origin, direction);
-			auto closestPoint = origin + t * direction;
-
-			double dist = glm::distance(closestPoint, pos);
-			return dist < EPS_BIG;
-		}
-		*/
-		bool IsPointOnLine(const glm::dvec3& pos) const
-		{
-			glm::dvec3 A = pos;
-			glm::dvec3 B = origin;
-			glm::dvec3 C = origin + direction;
-
-			glm::dvec3 d = (C - B) / glm::distance(C, B);
-			glm::dvec3 v = A - B;
-			double t = glm::dot(v, d);
-			glm::dvec3 P = B + t * d;
-			return glm::distance(P, A) < EPS_BIG();
-		}
-
-		double GetPosOnLine(const glm::dvec3& pos) const
-		{
-			return glm::dot(pos - origin, direction);
-		}
-
-		glm::dvec3 GetPosOnLine(const double dist) const
-		{
-			return origin + direction * dist;
-		}
-
-		bool IsColinear(const Line& other) const
-		{
-			return (equals(other.direction, direction, EPS_SMALL()) || equals(other.direction, -direction, EPS_SMALL()));
-		}
-
-		bool IsEqualTo(const glm::dvec3& pos, const glm::dvec3& dir) const
-		{
-			// check dir
-			if (!(equals(dir, direction, EPS_SMALL()) || equals(dir, -direction, EPS_SMALL())))
-			{
-				return false;
-			}
-
-			// check pos
-			if (!IsPointOnLine(pos))
-			{
-				return false;
-			}
-
-			return true;
-		}
-
-		void AddPointToLine(double dist, size_t id)
-		{
-			// check existing
-			for (auto& p : points)
-			{
-				if (p.second == id) return;
-			}
-
-			// add new point
-			points.push_back(std::make_pair(dist, id));
-
-			// re-sort all
-			std::sort(points.begin(), points.end(),
-				[&](const std::pair<double, size_t>& left, const std::pair<double, size_t>& right) {
-					return left.first < right.first;
-				});
-		}
-
-		std::vector<std::pair<size_t, size_t>> GetSegments() const
-		{
-			std::vector<std::pair<size_t, size_t>> retval;
-
-			for (size_t i = 1; i < points.size(); i++)
-			{
-				retval.push_back(std::make_pair(points[i - 1].second, points[i].second));
-			}
-
-			return retval;
-		}
-
-		std::vector<std::pair<double, size_t>> points;
-
-		std::vector<ReferencePlane> planes;
-	};
-
-	struct Point
-	{
-		size_t id;
-		size_t globalID;
-		glm::dvec3 location3D;
-
-		Point()
-		{
-			static size_t idcounter = 0;
-			idcounter++;
-			globalID = idcounter;
-		}
-
-		bool operator==(const glm::dvec3& pt)
-		{
-			return equals(location3D, pt, EPS_BIG());
-		}
-
-		std::vector<ReferenceLine> lines;
-		std::vector<ReferencePlane> planes;
-	};
-
-	struct Plane
-	{
-		size_t id;
-		size_t globalID;
-		double distance;
-		glm::dvec3 normal;
-
-		std::vector<Line> lines;
-		AABB aabb;
-
-		void AddPoint(const glm::dvec3& pt)
-		{
-			aabb.merge(pt);
-		}
-
-		Plane()
-		{
-			static size_t idcounter = 0;
-			idcounter++;
-			globalID = idcounter;
-
-			if (globalID == 320 || globalID == 321)
-			{
-				printf("adsf");
-			}
-		}
-
-		double round(double input)
-		{
-			input = std::fabs(input) < EPS_BIG() ? 0.0 : input;
-			input = std::fabs(input) < (1 - EPS_BIG()) ? input :
-				input > 0 ? 1.0 : -1.0;
-			return input;
-		}
-
-		glm::dvec3 round(glm::dvec3 in)
-		{
-			in.x = round(in.x);
-			in.y = round(in.y);
-			in.z = round(in.z);
-
-			return in;
-		}
-
-		glm::dvec3 GetDirection(glm::dvec3 a, glm::dvec3 b)
-		{
-			auto dir = b - a;
-			return glm::normalize(dir);
-		}
-
-		std::pair<size_t, bool> AddLine(const Point& a, const Point& b)
-		{
-			glm::dvec3 pos = a.location3D;
-			glm::dvec3 dir = GetDirection(pos, b.location3D);
-
-			auto lineId = AddLine(pos, dir);
-
-			if (!lines[lineId.first].IsPointOnLine(a.location3D))
-			{
-				printf("bad point");
-			}
-			if (!lines[lineId.first].IsPointOnLine(b.location3D))
-			{
-				printf("bad point");
-			}
-
-			if (!aabb.contains(a.location3D))
-			{
-				printf("bad points");
-			}
-			if (!aabb.contains(b.location3D))
-			{
-				printf("bad points");
-			}
-
-			lines[lineId.first].AddPointToLine(lines[lineId.first].GetPosOnLine(a.location3D), a.id);
-			lines[lineId.first].AddPointToLine(lines[lineId.first].GetPosOnLine(b.location3D), b.id);
-
-			return lineId;
-		}
-
-		std::pair<size_t, bool> AddLine(const glm::dvec3& pos, const glm::dvec3& dir)
-		{
-			for (auto& line : lines)
-			{
-				if (line.IsEqualTo(pos, dir))
-				{
-					return { line.id, false };
-				}
-			}
-
-			Line l;
-			l.id = lines.size();
-			l.origin = pos;
-			l.direction = dir;
-
-			lines.push_back(l);
-
-			return { l.id, true };
-		}
-
-		void RemoveLastLine()
-		{
-			lines.pop_back();
-		}
-
-		bool IsEqualTo(const glm::dvec3& n, double d)
-		{
-			// TODO: this EPS_BIG2 is too large, 1 mm
-			return (equals(normal, n, EPS_BIG2()) && equals(distance, d, EPS_BIG2())) ||
-				(equals(normal, -n, EPS_BIG2()) && equals(distance, -d, EPS_BIG2()));
-		}
-
-		glm::dvec2 GetPosOnPlane(const glm::dvec3& pos)
-		{
-			return {};
-		}
-
-		bool HasOverlap(const std::pair<size_t, size_t>& A, const std::pair<size_t, size_t>& B)
-		{
-			return (A.first == B.first || A.first == B.second || A.second == B.first || A.second == B.second);
-		}
-
-		void PutPointOnLines(Point& p)
-		{
-			for (auto& l : lines)
-			{
-				if (l.IsPointOnLine(p.location3D))
-				{
-					ReferenceLine ref;
-					ref.pointID = p.id;
-					ref.lineID = l.id;
-					ref.location = l.GetPosOnLine(p.location3D);
-					p.lines.push_back(ref);
-				}
-			}
-		}
-
-		bool IsPointOnPlane(const glm::dvec3& pos)
-		{
-			double d = glm::dot(normal, pos);
-			return equals(distance, d, EPS_BIG());
-		}
-
-		PlaneBasis MakeBasis()
-		{
-			glm::dvec3 origin = normal * distance;
-			glm::dvec3 up = normal;
-
-			glm::dvec3 worldUp = glm::dvec3(0, 1, 0);
-			glm::dvec3 worldRight = glm::dvec3(1, 0, 0);
-
-			bool normalIsUp = equals(up, worldUp, EPS_SMALL()) || equals(-up, worldUp, EPS_SMALL());
-			glm::dvec3 left = normalIsUp ? glm::cross(up, worldRight) : glm::cross(up, worldUp);
-			glm::dvec3 right = glm::cross(left, up);
-
-			PlaneBasis basis;
-
-			basis.origin = origin;
-			basis.up = glm::normalize(up);
-			basis.left = glm::normalize(left);
-			basis.right = glm::normalize(right);
-
-			return basis;
-		}
-	};
-
 	struct Triangle
 	{
 		size_t id;
@@ -699,7 +376,7 @@ namespace fuzzybools
 			return p.id;
 		}
 
-		size_t AddPlane(const glm::dvec3& normal, double d)
+		size_t AddPlane(const glm::dvec3& normal, double d, const Geometry& geom)
 		{
 			for (auto& plane : planes)
 			{
@@ -710,13 +387,30 @@ namespace fuzzybools
 			}
 
 			Plane p;
-			p.id = planes.size();
-			p.normal = normal;
-			p.distance = d;
 
-			planes.push_back(p);
+			bool found = false;
 
-			return p.id;
+			for (auto& plane : geom.planesData)
+			{
+				Plane temp_p;
+				temp_p.normal = plane.normal;
+				temp_p.distance = plane.distance;
+				if (temp_p.IsEqualTo(normal, d))
+				{
+					p.id = planes.size();
+					p.normal = plane.normal;
+					p.distance = plane.distance;
+					found = true;
+				}
+			}
+
+			if(found)
+			{
+				planes.push_back(p);
+				return p.id;
+			}
+
+			return -1;
 		}
 
 		void Construct(const Geometry& A, const Geometry& B)
@@ -772,35 +466,41 @@ namespace fuzzybools
 					double db = glm::dot(norm, b);
 					double dc = glm::dot(norm, c);
 
-					size_t planeId = AddPlane(norm, da);
+					size_t planeId = AddPlane(norm, da, geom);
 
-					if (!planes[planeId].IsPointOnPlane(a))
+					if(planeId == -1)
 					{
-						printf("unexpected point on plane\n");
-					}
-					if (!planes[planeId].IsPointOnPlane(b))
-					{
-						printf("unexpected point on plane\n");
-					}
-					if (!planes[planeId].IsPointOnPlane(c))
-					{
-						printf("unexpected point on plane\n");
-					}
-
-					planes[planeId].AddPoint(a);
-					planes[planeId].AddPoint(b);
-					planes[planeId].AddPoint(c);
-
-
-					if (isA)
-					{
-						A.AddFace(planeId, ia, ib, ic);
-						relevantA.AddFace(a, b, c);
+						printf("unexpected triangle, no valid plane found \n");
 					}
 					else
 					{
-						B.AddFace(planeId, ia, ib, ic);
-						relevantB.AddFace(a, b, c);
+						if (!planes[planeId].IsPointOnPlane(a))
+						{
+							printf("unexpected point on plane\n");
+						}
+						if (!planes[planeId].IsPointOnPlane(b))
+						{
+							printf("unexpected point on plane\n");
+						}
+						if (!planes[planeId].IsPointOnPlane(c))
+						{
+							printf("unexpected point on plane\n");
+						}
+
+						planes[planeId].AddPoint(a);
+						planes[planeId].AddPoint(b);
+						planes[planeId].AddPoint(c);
+
+						if (isA)
+						{
+							A.AddFace(planeId, ia, ib, ic);
+							relevantA.AddFace(a, b, c);
+						}
+						else
+						{
+							B.AddFace(planeId, ia, ib, ic);
+							relevantB.AddFace(a, b, c);
+						}
 					}
 				}
 				else

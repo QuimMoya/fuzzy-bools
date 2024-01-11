@@ -6,8 +6,11 @@
 
 namespace fuzzybools
 {
-	inline Geometry Subtract(const Geometry& A, const Geometry& B)
+	inline Geometry Subtract(Geometry& A, Geometry& B)
 	{
+		A.GeneratePlanes();
+		B.GeneratePlanes();
+
 		fuzzybools::SharedPosition sp;
 		sp.Construct(A, B);
 
@@ -18,11 +21,19 @@ namespace fuzzybools
 
 		DumpGeometry(geom, L"Post-normalize.obj");
 
-		return fuzzybools::clipSubtract(geom, bvh1, bvh2);
+		Geometry result = fuzzybools::clipSubtract(geom, bvh1, bvh2);
+
+		result.CopyPlanes(A);
+		result.CopyPlanes(B);
+
+		return result;
 	}
 
-	inline Geometry Union(const Geometry& A, const Geometry& B)
+	inline Geometry Union(Geometry& A, Geometry& B)
 	{
+		A.GeneratePlanes();
+		B.GeneratePlanes();
+
 		fuzzybools::SharedPosition sp;
 		sp.Construct(A, B);
 
