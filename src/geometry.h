@@ -1,7 +1,7 @@
 #pragma once
 
 #include <vector>
-#include <glm/glm.hpp>
+#include <glm.hpp>
 
 #include "math.h"
 #include "aabb.h"
@@ -412,7 +412,7 @@ namespace fuzzybools
 			numPoints += 1;
 		}
 
-		inline void AddFace(glm::dvec3 a, glm::dvec3 b, glm::dvec3 c, uint32_t p)
+		inline void AddFace(glm::dvec3 a, glm::dvec3 b, glm::dvec3 c, uint32_t p = -1)
 		{
 			glm::dvec3 normal;
 
@@ -432,7 +432,7 @@ namespace fuzzybools
 			AddFace(numPoints - 3, numPoints - 2, numPoints - 1, p);
 		}
 
-		inline void AddFace(uint32_t a, uint32_t b, uint32_t c, uint_32 p)
+		inline void AddFace(uint32_t a, uint32_t b, uint32_t c, uint32_t p = -1)
 		{
 			//indexData.reserve((numFaces + 1) * 3);
 			//indexData[numFaces * 3 + 0] = a;
@@ -441,7 +441,7 @@ namespace fuzzybools
 			indexData.push_back(a);
 			indexData.push_back(b);
 			indexData.push_back(c);
-			facePlane.push_back(p);
+			indexPlane.push_back(p);
 
 			double area = areaOfTriangle(GetPoint(a), GetPoint(b), GetPoint(c));
 

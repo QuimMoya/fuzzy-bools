@@ -5,7 +5,7 @@
 #include <unordered_map>
 #include <set>
 
-#include <glm/glm.hpp>
+#include <glm.hpp>
 
 #pragma warning( push )
 #pragma warning( disable : 4267)
@@ -466,7 +466,9 @@ namespace fuzzybools
 					double db = glm::dot(norm, b);
 					double dc = glm::dot(norm, c);
 
-					size_t planeId = AddPlane(f.plane.norm, f.plane.distance, geom);
+					Plane p = geom.planesData[f.ip];
+
+					size_t planeId = AddPlane(p.normal, p.distance, geom);
 
 					if(planeId == -1)
 					{
@@ -1122,11 +1124,11 @@ namespace fuzzybools
 
 			for (auto& plane_ : pList)
 			{
-				if(plane_.IsEqualTo(plane)){
+				if(plane_.IsEqualTo(plane.normal, plane.distance)){
 					p_index = count;
 					break;
 				}
-				count++
+				count++;
 			}
 			
 			sp.TriangulatePlane(geom, plane, p_index);

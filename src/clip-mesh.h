@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include <glm/glm.hpp>
+#include <glm.hpp>
 
 #include "util.h"
 #include "is-inside-mesh.h"
@@ -46,11 +46,11 @@ namespace fuzzybools
                 // emit triangle
                 if (flip)
                 {
-                    result.AddFace(a, c, b);
+                    result.AddFace(a, c, b, tri.ip);
                 }
                 else
                 {
-                    result.AddFace(a, b, c);
+                    result.AddFace(a, b, c, tri.ip);
                 }
             }
         }
@@ -110,7 +110,7 @@ namespace fuzzybools
                 {
                     // normals face away from eachother, we can keep this face
                     // furthermore, since the first operand is the first added, we don't flip
-                    result.AddFace(a, b, c);
+                    result.AddFace(a, b, c, tri.ip);
                 }
             }
             else
@@ -128,11 +128,11 @@ namespace fuzzybools
                         // we're taking the face of the second operand, but we must match the winding
                         if (glm::dot(n, isInside2Loc.normal) < 0)
                         {
-                            result.AddFace(a, b, c);
+                            result.AddFace(a, b, c, tri.ip);
                         }
                         else
                         {
-                            result.AddFace(b, a, c);
+                            result.AddFace(b, a, c, tri.ip);
                         }
                     }
                     else if (isInside1 == MeshLocation::BOUNDARY)
@@ -140,16 +140,16 @@ namespace fuzzybools
                         // we're taking the face of the second operand, but we must match the winding
                         if (glm::dot(n, isInside1Loc.normal) < 0)
                         {
-                            result.AddFace(b, a, c);
+                            result.AddFace(b, a, c, tri.ip);
                         }
                         else
                         {
-                            result.AddFace(a, b, c);
+                            result.AddFace(a, b, c, tri.ip);
                         }
                     }
                     else
                     {
-                        result.AddFace(a, b, c);
+                        result.AddFace(a, b, c, tri.ip);
                     }
                 }
             }
@@ -198,7 +198,7 @@ namespace fuzzybools
                 {
                     // normals face away from eachother, we can keep this face
                     // furthermore, since the first operand is the first added, we don't flip
-                    result.AddFace(a, b, c);
+                    result.AddFace(a, b, c, tri.ip);
                 }
             }
             else if (isInside1 == MeshLocation::BOUNDARY)
@@ -206,11 +206,11 @@ namespace fuzzybools
                 // either is a boundary, keep
                 if (glm::dot(n, isInside1Loc.normal) < 0)
                 {
-                    result.AddFace(b, a, c);
+                    result.AddFace(b, a, c, tri.ip);
                 }
                 else
                 {
-                    result.AddFace(a, b, c);
+                    result.AddFace(a, b, c, tri.ip);
                 }
             }
             else if (isInside2 == MeshLocation::BOUNDARY)
@@ -218,11 +218,11 @@ namespace fuzzybools
                 // either is a boundary, keep
                 if (glm::dot(n, isInside2Loc.normal) < 0)
                 {
-                    result.AddFace(b, a, c);
+                    result.AddFace(b, a, c, tri.ip);
                 }
                 else
                 {
-                    result.AddFace(a, b, c);
+                    result.AddFace(a, b, c, tri.ip);
                 }
             }
             else
