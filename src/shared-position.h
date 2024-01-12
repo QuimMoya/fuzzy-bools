@@ -453,10 +453,10 @@ namespace fuzzybools
 				auto b = geom.GetPoint(f.i1);
 				auto c = geom.GetPoint(f.i2);
 
-				relevant.AddFace(a, b, c);
+				relevant.AddFace(a, b, c, -1);
 
 				glm::dvec3 norm;
-				if (computeSafeNormal(a, b, c, norm, EPS_SMALL()))
+				if (f.ip != -1)
 				{
 					auto ia = AddPoint(a);
 					auto ib = AddPoint(b);
@@ -466,7 +466,7 @@ namespace fuzzybools
 					double db = glm::dot(norm, b);
 					double dc = glm::dot(norm, c);
 
-					size_t planeId = AddPlane(norm, da, geom);
+					size_t planeId = AddPlane(f.plane.norm, f.plane.distance, geom);
 
 					if(planeId == -1)
 					{
@@ -494,12 +494,12 @@ namespace fuzzybools
 						if (isA)
 						{
 							A.AddFace(planeId, ia, ib, ic);
-							relevantA.AddFace(a, b, c);
+							relevantA.AddFace(a, b, c, -1);
 						}
 						else
 						{
 							B.AddFace(planeId, ia, ib, ic);
-							relevantB.AddFace(a, b, c);
+							relevantB.AddFace(a, b, c, -1);
 						}
 					}
 				}
@@ -626,7 +626,7 @@ namespace fuzzybools
 			return segmentsWithoutIntersections;
 		}
 
-		void TriangulatePlane(Geometry& geom, Plane& p)
+		void TriangulatePlane(Geometry& geom, Plane& p, uint32_t p_index)
 		{
 			// grab all points on the plane
 			auto pointsOnPlane = GetPointsOnPlane(p);
@@ -758,9 +758,10 @@ namespace fuzzybools
 					//printf("removing point outside loop\n");
 					//continue;
 				//}
-
+				
 				// TODO: why is this swapped? winding doesnt matter much, but still
-				geom.AddFace(ptB, ptA, ptC);
+
+				geom.AddFace(ptB, ptA, ptC, p_index);
 			}
 		}
 
@@ -973,7 +974,7 @@ namespace fuzzybools
 		}
 	}
 
-	inline Geometry Normalize(SharedPosition& sp)
+	inline Geometry Normalize(SharedPosition& sp, std::vector<Plane> pList)
 	{
 		// construct all contours, derive lines
 		auto contoursA = sp.A.GetContourSegments();
@@ -1116,7 +1117,19 @@ namespace fuzzybools
 		Geometry geom;
 		for (auto& plane : sp.planes)
 		{
-			sp.TriangulatePlane(geom, plane);
+			uint32_t count = 0;
+			uint32_t p_index = -1;
+
+			for (auto& plane_ : pList)
+			{
+				if(plane_.IsEqualTo(plane)){
+					p_index = count;
+					break;
+				}
+				count++
+			}
+			
+			sp.TriangulatePlane(geom, plane, p_index);
 		}
 
 		// re-add irrelevant faces
@@ -1128,7 +1141,7 @@ namespace fuzzybools
 			auto b = sp._linkedA->GetPoint(f.i1);
 			auto c = sp._linkedA->GetPoint(f.i2);
 
-			geom.AddFace(a, b, c);
+			geom.AddFace(a, b, c, f.ip);
 		}
 
 		/*

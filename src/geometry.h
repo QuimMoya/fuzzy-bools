@@ -10,13 +10,6 @@ namespace fuzzybools
 {
 	constexpr int VERTEX_FORMAT_SIZE_FLOATS = 6;
 
-	struct Face
-	{
-		int i0;
-		int i1;
-		int i2;
-	};
-
 	struct PlaneBasis
 	{
 		glm::dvec3 origin;
@@ -340,12 +333,22 @@ namespace fuzzybools
 		}
 	};
 
+	struct Face
+	{
+		int i0;
+		int i1;
+		int i2;
+		int ip;
+	};
+
 	struct Geometry
 	{
 		std::vector<float> fvertexData;
 		std::vector<double> vertexData;
 		std::vector<uint32_t> indexData;
+		std::vector<uint32_t> indexPlane;
 		std::vector<Plane> planesData;
+
 
 		void BuildFromVectors(std::vector<double>& d, std::vector<uint32_t>& i)
 		{
@@ -409,7 +412,7 @@ namespace fuzzybools
 			numPoints += 1;
 		}
 
-		inline void AddFace(glm::dvec3 a, glm::dvec3 b, glm::dvec3 c)
+		inline void AddFace(glm::dvec3 a, glm::dvec3 b, glm::dvec3 c, uint32_t p)
 		{
 			glm::dvec3 normal;
 
@@ -426,10 +429,10 @@ namespace fuzzybools
 			AddPoint(b, normal);
 			AddPoint(c, normal);
 
-			AddFace(numPoints - 3, numPoints - 2, numPoints - 1);
+			AddFace(numPoints - 3, numPoints - 2, numPoints - 1, p);
 		}
 
-		inline void AddFace(uint32_t a, uint32_t b, uint32_t c)
+		inline void AddFace(uint32_t a, uint32_t b, uint32_t c, uint_32 p)
 		{
 			//indexData.reserve((numFaces + 1) * 3);
 			//indexData[numFaces * 3 + 0] = a;
@@ -438,6 +441,7 @@ namespace fuzzybools
 			indexData.push_back(a);
 			indexData.push_back(b);
 			indexData.push_back(c);
+			facePlane.push_back(p);
 
 			double area = areaOfTriangle(GetPoint(a), GetPoint(b), GetPoint(c));
 
@@ -457,6 +461,7 @@ namespace fuzzybools
 			f.i0 = indexData[index * 3 + 0];
 			f.i1 = indexData[index * 3 + 1];
 			f.i2 = indexData[index * 3 + 2];
+			f.ip = indexPlane[index];
 			return f;
 		}
 
@@ -526,30 +531,10 @@ namespace fuzzybools
 
 				// std::cout << areaOfTriangle(pa, pb, pc) << std::endl;
 
-				newGeom.AddFace(pa, pb, pc);
+				newGeom.AddFace(pa, pb, pc, face.ip);
 			}
 
 			return newGeom;
-		}
-
-		void CopyPlanes(Geometry geom)
-		{
-			for (auto& plane : geom.planesData)
-			{
-				for (auto& plane2 : planesData)
-				{
-					if (plane2.IsEqualTo(plane.normal, plane.distance))
-					{
-						return;
-					}
-				}
-
-				Plane p;
-				p.id = planesData.size();
-				p.normal = plane.normal;
-				p.distance = plane.distance;
-				planesData.push_back(p);
-			}
 		}
 
 		size_t AddPlane(const glm::dvec3& normal, double d)
@@ -593,6 +578,7 @@ namespace fuzzybools
 						double dc = glm::dot(norm, c);
 
 						size_t planeId = AddPlane(norm, da);
+						f.ip = planeId;
 					}
 				}
 			}
@@ -617,7 +603,7 @@ namespace fuzzybools
 				auto b = pb * scale + center;
 				auto c = pc * scale + center;
 
-				newGeom.AddFace(a, b, c);
+				newGeom.AddFace(a, b, c, face.ip);
 			}
 
 
