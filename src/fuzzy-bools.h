@@ -11,19 +11,25 @@ namespace fuzzybools
 	{
 		for (auto& plane : geom.planesData)
 		{
+			bool follow = true;
+
 			for (auto& plane2 : plane_list)
 			{
 				if (plane2.IsEqualTo(plane.normal, plane.distance))
 				{
-					return;
+					follow = false;
+					break;
 				}
 			}
 			
-			Plane p;
-			p.id = plane_list.size();
-			p.normal = plane.normal;
-			p.distance = plane.distance;
-			plane_list.push_back(p);
+			if(follow)
+			{
+				Plane p;
+				p.id = plane_list.size();
+				p.normal = plane.normal;
+				p.distance = plane.distance;
+				plane_list.push_back(p);
+			}
 		}
 	}
 

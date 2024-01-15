@@ -419,13 +419,13 @@ namespace fuzzybools
 			auto boxB = B.GetAABB();
 			
 			AddGeometry(A, boxB, true);
-			AddGeometry(B, boxA, false);
+			AddGeometry(B, boxA, false, A.planesData.size());
 
 			_linkedA = &A;
 			_linkedB = &B;
 		}
 
-		void AddGeometry(const Geometry& geom, const AABB& relevantBounds, bool isA)
+		void AddGeometry(const Geometry& geom, const AABB& relevantBounds, bool isA, uint32_t faceLength = 0)
 		{
 			Geometry relevant;
 
@@ -453,7 +453,7 @@ namespace fuzzybools
 				auto b = geom.GetPoint(f.i1);
 				auto c = geom.GetPoint(f.i2);
 
-				relevant.AddFace(a, b, c, -1);
+				relevant.AddFace(a, b, c, faceLength + f.ip);
 
 				glm::dvec3 norm;
 				if (f.ip != -1)
@@ -496,12 +496,12 @@ namespace fuzzybools
 						if (isA)
 						{
 							A.AddFace(planeId, ia, ib, ic);
-							relevantA.AddFace(a, b, c, -1);
+							relevantA.AddFace(a, b, c, f.ip);
 						}
 						else
 						{
 							B.AddFace(planeId, ia, ib, ic);
-							relevantB.AddFace(a, b, c, -1);
+							relevantB.AddFace(a, b, c, faceLength + f.ip);
 						}
 					}
 				}

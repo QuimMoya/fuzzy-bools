@@ -560,30 +560,28 @@ namespace fuzzybools
 		{
 			if(planesData.size() == 0)
 			{
+				uint32_t count = 0;
 				for (size_t i = 0; i < numFaces; i++)
 				{
 					Face f = GetFace(i);
-
 					auto faceBox = GetFaceBox(i);
-
 					auto a = GetPoint(f.i0);
 					auto b = GetPoint(f.i1);
 					auto c = GetPoint(f.i2);
-
 					glm::dvec3 norm;
 					if (computeSafeNormal(a, b, c, norm, EPS_SMALL()))
 					{
 						double da = glm::dot(norm, a);
 						double db = glm::dot(norm, b);
 						double dc = glm::dot(norm, c);
-
 						uint32_t planeId = AddPlane(norm, da);
-						indexPlane.push_back(planeId);
+						indexPlane[count] = planeId;
 					}
 					else
 					{
-						indexPlane.push_back(-1);
+						indexPlane[count] = -1;
 					}
+					count++;
 				}
 			}
 		}
