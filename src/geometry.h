@@ -577,8 +577,12 @@ namespace fuzzybools
 						double db = glm::dot(norm, b);
 						double dc = glm::dot(norm, c);
 
-						size_t planeId = AddPlane(norm, da);
-						f.ip = planeId;
+						uint32_t planeId = AddPlane(norm, da);
+						indexPlane.push_back(planeId);
+					}
+					else
+					{
+						indexPlane.push_back(-1);
 					}
 				}
 			}
