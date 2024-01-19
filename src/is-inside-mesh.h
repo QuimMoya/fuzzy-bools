@@ -30,7 +30,7 @@ namespace fuzzybools
 
     inline InsideResult isInsideMesh(const glm::dvec3& pt, glm::dvec3 normal, const Geometry& g, BVH& bvh)
     {
-        glm::dvec3 dir(1, 1.1, 1.4);
+        glm::dvec3 dir(1.036332, 1.222421, 1.423112);
 
         int winding = 0;
 
