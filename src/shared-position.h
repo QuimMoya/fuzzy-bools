@@ -628,7 +628,139 @@ namespace fuzzybools
 			return segmentsWithoutIntersections;
 		}
 
-		void TriangulatePlane(Geometry& geom, Plane& p, uint32_t p_index)
+		inline void DisjointPolygons(std::vector<glm::dvec2> &projectedPoints_initial, std::set<std::pair<size_t, size_t>> &edges_initial, std::vector<glm::dvec2> &projectedPoints, std::set<std::pair<size_t, size_t>> &edges)
+		{
+			// Initializing lists
+			std::vector<std::vector<uint32_t>> nearestEdge;
+			uint32_t id = 0;
+			for (auto &edge : edges_initial)
+			{
+				std::vector<uint32_t> list;
+				nearestEdge.push_back(list);
+				id++;
+			}
+
+			// Find points that are near to edges
+			for (auto &edgeBase : edges_initial)
+			{
+				std::vector<uint32_t> iters;
+				iters.push_back(edgeBase.first);
+				iters.push_back(edgeBase.second);
+
+				auto pi = projectedPoints_initial[edgeBase.first];
+				auto pe = projectedPoints_initial[edgeBase.second];
+				auto vectorEdge = pi - pe;
+				vectorEdge = glm::normalize(vectorEdge);
+
+				for (auto &iter : iters)
+				{
+					auto point = projectedPoints_initial[iter];
+
+					uint32_t ide = 0;
+					for (auto &edge : edges_initial)
+					{
+						if (edge.first != iter && edge.second != iter &&
+							std::find(nearestEdge[ide].begin(), nearestEdge[ide].end(), iter) == nearestEdge[ide].end())
+						{
+							auto pi = projectedPoints_initial[edge.first];
+							auto pe = projectedPoints_initial[edge.second];
+							auto lenght = glm::distance(pi, pe);
+							auto vectorEdge2 = pi - pe;
+							vectorEdge2 = glm::normalize(vectorEdge2);
+							if (glm::abs(glm::dot(vectorEdge, vectorEdge2)) > 1 - EPS_BIG())
+							{
+								auto vector_to_point = pi - point;
+								auto prod = glm::dot(vector_to_point, vectorEdge2);
+								auto distance = glm::distance(pi, point);
+								auto distanceLinePoint = std::sqrt(distance * distance - prod * prod);
+								if (prod > 0 && prod < lenght && distanceLinePoint < EPS_BIG3())
+								{
+									nearestEdge[ide].push_back(iter);
+								}
+							}
+						}
+						ide++;
+					}
+				}
+			}
+
+			// Rebuild edges to include near points
+			id = 0;
+			for (auto &edge : edges_initial)
+			{
+				if (nearestEdge[id].size() != 0)
+				{
+					auto pi = projectedPoints_initial[edge.first];
+					std::vector<std::pair<uint32_t, double>> pointDistancePairs;
+					auto pt = projectedPoints_initial[edge.second];
+					pointDistancePairs.emplace_back(edge.first, 0);
+					pointDistancePairs.emplace_back(edge.second, glm::distance(pt, pi));
+					for (auto &idx : nearestEdge[id])
+					{
+						pt = projectedPoints_initial[idx];
+						pointDistancePairs.emplace_back(idx, glm::distance(pt, pi));
+					}
+
+					// Sort the vector of pairs based on distances
+					std::sort(pointDistancePairs.begin(), pointDistancePairs.end(),
+							  [](const auto &a, const auto &b)
+							  {
+								  return a.second < b.second;
+							  });
+
+					// Loop through all pointDistancePairs except the last one
+					for (size_t i = 0; i < pointDistancePairs.size() - 1; ++i)
+					{
+						auto &pair1 = pointDistancePairs[i].first;
+						auto &pair2 = pointDistancePairs[i + 1].first;	
+						edges.insert(std::make_pair(pair1, pair2));
+					}
+				}
+				else
+				{
+					edges.insert(edge);
+				}
+				id++;
+			}
+
+			std::vector<bool> removeList; 
+			id = 0;
+			for (auto &edge1 : edges)
+			{
+				uint32_t id2 = 0;
+				bool repeated = false;
+				for (auto &edge2 : edges)
+				{
+					if(id > id2)
+					{
+						if((edge1.first == edge2.first && edge1.second == edge2.second) || 
+						(edge1.second == edge2.first && edge1.first == edge2.second))
+						{
+							repeated = true;
+							break;
+						}
+					}
+					id2++;
+				}
+				removeList.push_back(repeated);
+				id++;
+			}
+
+			std::set<std::pair<size_t, size_t>> newEdges;
+
+			for (auto it = edges.begin(); it != edges.end(); ++it) {
+				size_t index = std::distance(edges.begin(), it);
+				if (!removeList[index]) {
+					newEdges.insert(*it);
+				}
+			}
+
+			edges = std::move(newEdges);
+
+			projectedPoints = projectedPoints_initial;
+		}
+
+		void TriangulatePlane(Geometry &geom, Plane &p, uint32_t p_index)
 		{
 			// grab all points on the plane
 			auto pointsOnPlane = GetPointsOnPlane(p);
@@ -641,44 +773,46 @@ namespace fuzzybools
 			std::unordered_map<size_t, size_t> pointToProjectedPoint;
 			std::unordered_map<size_t, size_t> projectedPointToPoint;
 
-			std::vector<glm::dvec2> projectedPoints;
+			std::vector<glm::dvec2> projectedPoints_initial;
+			std::set<std::pair<size_t, size_t>> edges_initial;
 
-			for (auto& pointId : pointsOnPlane)
+			for (auto &pointId : pointsOnPlane)
 			{
-				pointToProjectedPoint[pointId] = projectedPoints.size();
-				projectedPointToPoint[projectedPoints.size()] = pointId;
-				projectedPoints.push_back(basis.project(points[pointId].location3D));
+				pointToProjectedPoint[pointId] = projectedPoints_initial.size();
+				projectedPointToPoint[projectedPoints_initial.size()] = pointId;
+				projectedPoints_initial.push_back(basis.project(points[pointId].location3D));
 			}
 
-			std::set<std::pair<size_t, size_t>> edges;
 			std::set<std::pair<size_t, size_t>> defaultEdges;
 			static int i = 0;
 			i++;
 
-			for (auto& line : p.lines)
+			std::vector<std::vector<glm::dvec2>> edgesPrintedAll;
+
+			for (auto &line : p.lines)
 			{
 				// these segments might intersect internally, lets resolve that so we get a valid chain
 				auto segments = GetNonIntersectingSegments(line);
 
-				for (auto& segment : segments)
+				for (auto &segment : segments)
 				{
 					if (pointToProjectedPoint.count(segment.first) == 0)
 					{
 						bool expectedOnPlane = p.IsPointOnPlane(points[segment.first].location3D);
 						printf("unknown point in list, repairing");
 
-						pointToProjectedPoint[segment.first] = projectedPoints.size();
-						projectedPointToPoint[projectedPoints.size()] = segment.first;
-						projectedPoints.push_back(basis.project(points[segment.first].location3D));
+						pointToProjectedPoint[segment.first] = projectedPoints_initial.size();
+						projectedPointToPoint[projectedPoints_initial.size()] = segment.first;
+						projectedPoints_initial.push_back(basis.project(points[segment.first].location3D));
 					}
 					if (pointToProjectedPoint.count(segment.second) == 0)
 					{
 						bool expectedOnPlane = p.IsPointOnPlane(points[segment.second].location3D);
 						printf("unknown point in list, repairing");
 
-						pointToProjectedPoint[segment.second] = projectedPoints.size();
-						projectedPointToPoint[projectedPoints.size()] = segment.second;
-						projectedPoints.push_back(basis.project(points[segment.second].location3D));
+						pointToProjectedPoint[segment.second] = projectedPoints_initial.size();
+						projectedPointToPoint[projectedPoints_initial.size()] = segment.second;
+						projectedPoints_initial.push_back(basis.project(points[segment.second].location3D));
 					}
 
 					auto projectedIndexA = pointToProjectedPoint[segment.first];
@@ -687,7 +821,7 @@ namespace fuzzybools
 					if (projectedIndexA != projectedIndexB)
 					{
 						defaultEdges.insert(segment);
-						edges.insert(std::make_pair(projectedIndexA, projectedIndexB));
+						edges_initial.insert(std::make_pair(projectedIndexA, projectedIndexB));
 					}
 				}
 
@@ -695,15 +829,34 @@ namespace fuzzybools
 				{
 					std::vector<std::vector<glm::dvec2>> edgesPrinted;
 
-					for (auto& e : edges)
+					for (auto &e : edges_initial)
 					{
-						edgesPrinted.push_back({ projectedPoints[e.first], projectedPoints[e.second] });
+						edgesPrinted.push_back({projectedPoints_initial[e.first], projectedPoints_initial[e.second]});
+						edgesPrintedAll.push_back({projectedPoints_initial[e.first], projectedPoints_initial[e.second]});
 					}
 
 					DumpSVGLines(edgesPrinted, L"poly_" + std::to_wstring(line.id) + L".html");
 				}
 			}
 
+			if (false)
+			{
+				std::vector<std::vector<glm::dvec2>> edgesPrinted;
+
+				for (auto &e : edges_initial)
+				{
+					edgesPrintedAll.push_back({projectedPoints_initial[e.first], projectedPoints_initial[e.second]});
+				}
+
+				DumpSVGLines(edgesPrintedAll, L"poly_.html");
+			}
+
+			std::vector<glm::dvec2> projectedPoints;
+			std::set<std::pair<size_t, size_t>> edges;
+
+			DisjointPolygons(projectedPoints_initial, edges_initial, projectedPoints, edges);
+
+			uint32_t id = 0;
 
 			CDT::Triangulation<double> cdt(CDT::VertexInsertionOrder::AsProvided);
 			std::vector<CDT::Edge> cdt_edges;
@@ -765,6 +918,7 @@ namespace fuzzybools
 
 				geom.AddFace(ptB, ptA, ptC, p_index);
 			}
+			id++;
 		}
 
 		std::unordered_map<size_t, std::vector<size_t>> planeToLines;

@@ -8,6 +8,7 @@ static constexpr double E_TINY = 1e-9;
 static constexpr double E_SMALL = 1e-6;
 static constexpr double E_BIG = 1e-4;
 static constexpr double E_BIG2 = 1e-3;
+static constexpr double E_BIG3 = 1e-2;
 
 static double RET_VAL(double val, bool scale)
 {
@@ -43,4 +44,8 @@ static double EPS_BIG(bool scale = false){
 
 static double EPS_BIG2(bool scale = false){
     return RET_VAL(E_BIG2, scale);
+}
+
+static double EPS_BIG3(bool scale = false){
+    return RET_VAL(E_BIG3, scale);
 }

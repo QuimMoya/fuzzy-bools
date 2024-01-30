@@ -23,7 +23,7 @@ namespace fuzzybools
 	static void writeFile(std::wstring filename, std::string data)
 	{
 #ifdef _MSC_VER
-		std::ofstream out(L"debug_output/" + filename);
+		std::ofstream out(filename);
 		out << data;
 #endif
 	}
