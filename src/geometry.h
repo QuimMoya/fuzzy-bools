@@ -18,7 +18,7 @@ namespace fuzzybools
 		glm::dvec3 left;
 		glm::dvec3 right;
 
-		glm::dvec2 project(const glm::dvec3& pt)
+		glm::dvec2 project(const glm::dvec3 &pt)
 		{
 			auto relative = pt - origin;
 			return glm::dvec2(glm::dot(relative, left), glm::dot(relative, right));
@@ -64,7 +64,7 @@ namespace fuzzybools
 			return dist < EPS_BIG;
 		}
 		*/
-		bool IsPointOnLine(const glm::dvec3& pos) const
+		bool IsPointOnLine(const glm::dvec3 &pos) const
 		{
 			glm::dvec3 A = pos;
 			glm::dvec3 B = origin;
@@ -74,10 +74,10 @@ namespace fuzzybools
 			glm::dvec3 v = A - B;
 			double t = glm::dot(v, d);
 			glm::dvec3 P = B + t * d;
-			return glm::distance(P, A) < EPS_BIG();
+			return glm::distance(P, A) < EPS_BIG;
 		}
 
-		double GetPosOnLine(const glm::dvec3& pos) const
+		double GetPosOnLine(const glm::dvec3 &pos) const
 		{
 			return glm::dot(pos - origin, direction);
 		}
@@ -87,15 +87,15 @@ namespace fuzzybools
 			return origin + direction * dist;
 		}
 
-		bool IsColinear(const Line& other) const
+		bool IsColinear(const Line &other) const
 		{
-			return (equals(other.direction, direction, EPS_SMALL()) || equals(other.direction, -direction, EPS_SMALL()));
+			return (equals(other.direction, direction, EPS_SMALL) || equals(other.direction, -direction, EPS_SMALL));
 		}
 
-		bool IsEqualTo(const glm::dvec3& pos, const glm::dvec3& dir) const
+		bool IsEqualTo(const glm::dvec3 &pos, const glm::dvec3 &dir) const
 		{
 			// check dir
-			if (!(equals(dir, direction, EPS_SMALL()) || equals(dir, -direction, EPS_SMALL())))
+			if (!(equals(dir, direction, EPS_SMALL) || equals(dir, -direction, EPS_SMALL)))
 			{
 				return false;
 			}
@@ -112,9 +112,10 @@ namespace fuzzybools
 		void AddPointToLine(double dist, size_t id)
 		{
 			// check existing
-			for (auto& p : points)
+			for (auto &p : points)
 			{
-				if (p.second == id) return;
+				if (p.second == id)
+					return;
 			}
 
 			// add new point
@@ -122,9 +123,10 @@ namespace fuzzybools
 
 			// re-sort all
 			std::sort(points.begin(), points.end(),
-				[&](const std::pair<double, size_t>& left, const std::pair<double, size_t>& right) {
-					return left.first < right.first;
-				});
+					  [&](const std::pair<double, size_t> &left, const std::pair<double, size_t> &right)
+					  {
+						  return left.first < right.first;
+					  });
 		}
 
 		std::vector<std::pair<size_t, size_t>> GetSegments() const
@@ -157,9 +159,9 @@ namespace fuzzybools
 			globalID = idcounter;
 		}
 
-		bool operator==(const glm::dvec3& pt)
+		bool operator==(const glm::dvec3 &pt)
 		{
-			return equals(location3D, pt, EPS_BIG());
+			return equals(location3D, pt, EPS_BIG);
 		}
 
 		std::vector<ReferenceLine> lines;
@@ -176,7 +178,7 @@ namespace fuzzybools
 		std::vector<Line> lines;
 		AABB aabb;
 
-		void AddPoint(const glm::dvec3& pt)
+		void AddPoint(const glm::dvec3 &pt)
 		{
 			aabb.merge(pt);
 		}
@@ -195,9 +197,9 @@ namespace fuzzybools
 
 		double round(double input)
 		{
-			input = std::fabs(input) < EPS_BIG() ? 0.0 : input;
-			input = std::fabs(input) < (1 - EPS_BIG()) ? input :
-				input > 0 ? 1.0 : -1.0;
+			input = std::fabs(input) < EPS_BIG ? 0.0 : input;
+			input = std::fabs(input) < (1 - EPS_BIG) ? input : input > 0 ? 1.0
+																		   : -1.0;
 			return input;
 		}
 
@@ -216,7 +218,7 @@ namespace fuzzybools
 			return glm::normalize(dir);
 		}
 
-		std::pair<size_t, bool> AddLine(const Point& a, const Point& b)
+		std::pair<size_t, bool> AddLine(const Point &a, const Point &b)
 		{
 			glm::dvec3 pos = a.location3D;
 			glm::dvec3 dir = GetDirection(pos, b.location3D);
@@ -247,13 +249,13 @@ namespace fuzzybools
 			return lineId;
 		}
 
-		std::pair<size_t, bool> AddLine(const glm::dvec3& pos, const glm::dvec3& dir)
+		std::pair<size_t, bool> AddLine(const glm::dvec3 &pos, const glm::dvec3 &dir)
 		{
-			for (auto& line : lines)
+			for (auto &line : lines)
 			{
 				if (line.IsEqualTo(pos, dir))
 				{
-					return { line.id, false };
+					return {line.id, false};
 				}
 			}
 
@@ -264,7 +266,7 @@ namespace fuzzybools
 
 			lines.push_back(l);
 
-			return { l.id, true };
+			return {l.id, true};
 		}
 
 		void RemoveLastLine()
@@ -272,26 +274,26 @@ namespace fuzzybools
 			lines.pop_back();
 		}
 
-		bool IsEqualTo(const glm::dvec3& n, double d)
+		bool IsEqualTo(const glm::dvec3 &n, double d)
 		{
 			// TODO: this EPS_BIG2 is too large, 1 mm
-			return (equals(normal, n, EPS_BIG2()) && equals(distance, d, EPS_BIG2())) ||
-				(equals(normal, -n, EPS_BIG2()) && equals(distance, -d, EPS_BIG2()));
+			return (equals(normal, n, EPS_BIG2) && equals(distance, d, EPS_BIG2)) ||
+				   (equals(normal, -n, EPS_BIG2) && equals(distance, -d, EPS_BIG2));
 		}
 
-		glm::dvec2 GetPosOnPlane(const glm::dvec3& pos)
+		glm::dvec2 GetPosOnPlane(const glm::dvec3 &pos)
 		{
 			return {};
 		}
 
-		bool HasOverlap(const std::pair<size_t, size_t>& A, const std::pair<size_t, size_t>& B)
+		bool HasOverlap(const std::pair<size_t, size_t> &A, const std::pair<size_t, size_t> &B)
 		{
 			return (A.first == B.first || A.first == B.second || A.second == B.first || A.second == B.second);
 		}
 
-		void PutPointOnLines(Point& p)
+		void PutPointOnLines(Point &p)
 		{
-			for (auto& l : lines)
+			for (auto &l : lines)
 			{
 				if (l.IsPointOnLine(p.location3D))
 				{
@@ -304,10 +306,10 @@ namespace fuzzybools
 			}
 		}
 
-		bool IsPointOnPlane(const glm::dvec3& pos)
+		bool IsPointOnPlane(const glm::dvec3 &pos)
 		{
 			double d = glm::dot(normal, pos);
-			return equals(distance, d, EPS_BIG());
+			return equals(distance, d, EPS_BIG);
 		}
 
 		PlaneBasis MakeBasis()
@@ -318,7 +320,7 @@ namespace fuzzybools
 			glm::dvec3 worldUp = glm::dvec3(0, 1, 0);
 			glm::dvec3 worldRight = glm::dvec3(1, 0, 0);
 
-			bool normalIsUp = equals(up, worldUp, EPS_SMALL()) || equals(-up, worldUp, EPS_SMALL());
+			bool normalIsUp = equals(up, worldUp, EPS_SMALL) || equals(-up, worldUp, EPS_SMALL);
 			glm::dvec3 left = normalIsUp ? glm::cross(up, worldRight) : glm::cross(up, worldUp);
 			glm::dvec3 right = glm::cross(left, up);
 
@@ -349,8 +351,7 @@ namespace fuzzybools
 		std::vector<uint32_t> indexPlane;
 		std::vector<Plane> planesData;
 
-
-		void BuildFromVectors(std::vector<double>& d, std::vector<uint32_t>& i)
+		void BuildFromVectors(std::vector<double> &d, std::vector<uint32_t> &i)
 		{
 			vertexData = d;
 			indexData = i;
@@ -362,7 +363,7 @@ namespace fuzzybools
 		uint32_t numPoints = 0;
 		uint32_t numFaces = 0;
 
-		inline void AddPoint(glm::dvec4& pt, glm::dvec3& n)
+		inline void AddPoint(glm::dvec4 &pt, glm::dvec3 &n)
 		{
 			glm::dvec3 p = pt;
 			AddPoint(p, n);
@@ -381,12 +382,12 @@ namespace fuzzybools
 			return aabb;
 		}
 
-		inline void AddPoint(glm::dvec3& pt, glm::dvec3& n)
+		inline void AddPoint(glm::dvec3 &pt, glm::dvec3 &n)
 		{
-			//vertexData.reserve((numPoints + 1) * VERTEX_FORMAT_SIZE_FLOATS);
-			//vertexData[numPoints * VERTEX_FORMAT_SIZE_FLOATS + 0] = pt.x;
-			//vertexData[numPoints * VERTEX_FORMAT_SIZE_FLOATS + 1] = pt.y;
-			//vertexData[numPoints * VERTEX_FORMAT_SIZE_FLOATS + 2] = pt.z;
+			// vertexData.reserve((numPoints + 1) * VERTEX_FORMAT_SIZE_FLOATS);
+			// vertexData[numPoints * VERTEX_FORMAT_SIZE_FLOATS + 0] = pt.x;
+			// vertexData[numPoints * VERTEX_FORMAT_SIZE_FLOATS + 1] = pt.y;
+			// vertexData[numPoints * VERTEX_FORMAT_SIZE_FLOATS + 2] = pt.z;
 			vertexData.push_back(pt.x);
 			vertexData.push_back(pt.y);
 			vertexData.push_back(pt.z);
@@ -405,9 +406,9 @@ namespace fuzzybools
 				printf("NaN in geom!\n");
 			}
 
-			//vertexData[numPoints * VERTEX_FORMAT_SIZE_FLOATS + 3] = n.x;
-			//vertexData[numPoints * VERTEX_FORMAT_SIZE_FLOATS + 4] = n.y;
-			//vertexData[numPoints * VERTEX_FORMAT_SIZE_FLOATS + 5] = n.z;
+			// vertexData[numPoints * VERTEX_FORMAT_SIZE_FLOATS + 3] = n.x;
+			// vertexData[numPoints * VERTEX_FORMAT_SIZE_FLOATS + 4] = n.y;
+			// vertexData[numPoints * VERTEX_FORMAT_SIZE_FLOATS + 5] = n.z;
 
 			numPoints += 1;
 		}
@@ -418,7 +419,7 @@ namespace fuzzybools
 
 			double area = areaOfTriangle(a, b, c);
 
-			if (!computeSafeNormal(a, b, c, normal, EPS_SMALL()))
+			if (!computeSafeNormal(a, b, c, normal, EPS_SMALL))
 			{
 				// bail out, zero area triangle
 				printf("zero tri");
@@ -434,10 +435,10 @@ namespace fuzzybools
 
 		inline void AddFace(uint32_t a, uint32_t b, uint32_t c, uint32_t p = -1)
 		{
-			//indexData.reserve((numFaces + 1) * 3);
-			//indexData[numFaces * 3 + 0] = a;
-			//indexData[numFaces * 3 + 1] = b;
-			//indexData[numFaces * 3 + 2] = c;
+			// indexData.reserve((numFaces + 1) * 3);
+			// indexData[numFaces * 3 + 0] = a;
+			// indexData[numFaces * 3 + 1] = b;
+			// indexData[numFaces * 3 + 2] = c;
 			indexData.push_back(a);
 			indexData.push_back(b);
 			indexData.push_back(c);
@@ -492,11 +493,10 @@ namespace fuzzybools
 			return glm::dvec3(
 				vertexData[index * VERTEX_FORMAT_SIZE_FLOATS + 0],
 				vertexData[index * VERTEX_FORMAT_SIZE_FLOATS + 1],
-				vertexData[index * VERTEX_FORMAT_SIZE_FLOATS + 2]
-			);
+				vertexData[index * VERTEX_FORMAT_SIZE_FLOATS + 2]);
 		}
 
-		void GetCenterExtents(glm::dvec3& center, glm::dvec3& extents) const
+		void GetCenterExtents(glm::dvec3 &center, glm::dvec3 &extents) const
 		{
 			glm::dvec3 min(DBL_MAX, DBL_MAX, DBL_MAX);
 			glm::dvec3 max(DBL_MIN, DBL_MIN, DBL_MIN);
@@ -537,9 +537,9 @@ namespace fuzzybools
 			return newGeom;
 		}
 
-		size_t AddPlane(const glm::dvec3& normal, double d)
+		size_t AddPlane(const glm::dvec3 &normal, double d)
 		{
-			for (auto& plane : planesData)
+			for (auto &plane : planesData)
 			{
 				if (plane.IsEqualTo(normal, d))
 				{
@@ -558,7 +558,7 @@ namespace fuzzybools
 
 		void GeneratePlanes()
 		{
-			if(planesData.size() == 0)
+			if (planesData.size() == 0)
 			{
 				uint32_t count = 0;
 				for (size_t i = 0; i < numFaces; i++)
@@ -569,7 +569,7 @@ namespace fuzzybools
 					auto b = GetPoint(f.i1);
 					auto c = GetPoint(f.i2);
 					glm::dvec3 norm;
-					if (computeSafeNormal(a, b, c, norm, EPS_SMALL()))
+					if (computeSafeNormal(a, b, c, norm, EPS_SMALL))
 					{
 						double da = glm::dot(norm, a);
 						double db = glm::dot(norm, b);
@@ -608,16 +608,15 @@ namespace fuzzybools
 				newGeom.AddFace(a, b, c, face.ip);
 			}
 
-
 			return newGeom;
 		}
-		
+
 		bool IsEmpty()
 		{
 			return vertexData.empty();
 		}
 
-		double Volume(const glm::dmat4& trans = glm::dmat4(1))
+		double Volume(const glm::dmat4 &trans = glm::dmat4(1))
 		{
 			double totalVolume = 0;
 

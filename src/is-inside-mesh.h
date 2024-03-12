@@ -53,7 +53,7 @@ namespace fuzzybools
                     glm::dvec3 otherNormal = computeNormal(a, b, c);
                     double d = glm::dot(otherNormal, dir);
                     double dn = glm::dot(otherNormal, normal);
-                    if (std::fabs(distance) < EPS_BIG2())
+                    if (std::fabs(distance) < EPS_BIG2)
                     {
                         //if (dn >= 1 - EPS_BIG)
                         //{
