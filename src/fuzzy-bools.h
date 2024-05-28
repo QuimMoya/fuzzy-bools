@@ -6,7 +6,7 @@
 
 namespace fuzzybools
 {
-	inline Geometry BooleanResult(const BooleanOperator op, const Geometry &A, const Geometry &B)
+	inline Geometry Subtract(const Geometry& A, const Geometry& B)
 	{
 		fuzzybools::SharedPosition sp;
 		sp.Construct(A, B);
@@ -16,21 +16,21 @@ namespace fuzzybools
 
 		auto geom = Normalize(sp);
 
-		return fuzzybools::clipBooleanResult(op, geom, bvh1, bvh2);
+		DumpGeometry(geom, L"Post-normalize.obj");
+
+		return fuzzybools::clipSubtract(geom, bvh1, bvh2);
 	}
 
-	inline Geometry Union(const Geometry &A, const Geometry &B)
+	inline Geometry Union(const Geometry& A, const Geometry& B)
 	{
-		return fuzzybools::BooleanResult(BooleanOperator::UNION, A, B);
-	}
+		fuzzybools::SharedPosition sp;
+		sp.Construct(A, B);
 
-	inline Geometry Intersection(const Geometry &A, const Geometry &B)
-	{
-		return fuzzybools::BooleanResult(BooleanOperator::INTERSECTION, A, B);
-	}
+		auto bvh1 = fuzzybools::MakeBVH(A);
+		auto bvh2 = fuzzybools::MakeBVH(B);
 
-	inline Geometry Difference(const Geometry &A, const Geometry &B)
-	{
-		return fuzzybools::BooleanResult(BooleanOperator::DIFFERENCE, A, B);
+		auto geom = Normalize(sp);
+
+		return fuzzybools::clipJoin(geom, bvh1, bvh2);
 	}
 }
